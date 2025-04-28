@@ -130,7 +130,14 @@ local function update_preview(ctx)
     local annot = ''
 
     if ctx.suggestions and #ctx.suggestions > 1 then
-        annot = '(' .. ctx.choice .. '/' .. #ctx.suggestions .. ')'
+        annot = ' (' .. ctx.choice .. '/' .. #ctx.suggestions .. ')'
+    end
+
+    local first_line = display_lines[1] or ''
+
+    -- Add annotation if needed
+    if #annot > 0 then
+        first_line = first_line .. annot
     end
 
     local cursor_col = vim.fn.col '.'
@@ -138,23 +145,10 @@ local function update_preview(ctx)
 
     local extmark = {
         id = internal.extmark_id,
-        virt_text = { { display_lines[1], 'MinuetVirtualText' } },
+        virt_text = { { first_line, 'MinuetVirtualText' } },
         virt_text_pos = 'inline',
+        hl_mode = 'replace',
     }
-
-    if #display_lines > 1 then
-        extmark.virt_lines = {}
-        for i = 2, #display_lines do
-            extmark.virt_lines[i - 1] = { { display_lines[i], 'MinuetVirtualText' } }
-        end
-
-        local last_line = #display_lines - 1
-        extmark.virt_lines[last_line][1][1] = extmark.virt_lines[last_line][1][1] .. ' ' .. annot
-    elseif #annot > 0 then
-        extmark.virt_text[1][1] = extmark.virt_text[1][1] .. ' ' .. annot
-    end
-
-    extmark.hl_mode = 'replace'
 
     api.nvim_buf_set_extmark(0, internal.ns_id, cursor_line - 1, cursor_col - 1, extmark)
 
