@@ -311,6 +311,34 @@ function action.accept(n_lines)
     end)()
 end
 
+function action.accept_word()
+    local ctx = get_ctx()
+
+    local suggestion = get_current_suggestion(ctx)
+    if not suggestion or vim.fn.empty(suggestion) == 1 then
+        return
+    end
+
+    local suggestions = vim.split(suggestion, ' ')
+
+    local word = suggestions[1]
+
+    reset_ctx(ctx)
+
+    clear_preview()
+
+    local cursor = api.nvim_win_get_cursor(0)
+    local line, col = cursor[1] - 1, cursor[2]
+
+    local ctrl_o = api.nvim_replace_termcodes('<C-o>', true, false, true)
+
+    vim.schedule_wrap(function()
+        api.nvim_buf_set_text(0, line, col, line, col, { word })
+        -- move to eol. \15 is Ctrl-o
+        api.nvim_feedkeys(ctrl_o .. '$', 'n', false)
+    end)()
+end
+
 function action.accept_n_lines()
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local n = vim.fn.input 'accept n lines: '
@@ -475,6 +503,13 @@ local function set_keymaps(keymap)
     if keymap.accept_n_lines then
         vim.keymap.set('i', keymap.accept_n_lines, action.accept_n_lines, {
             desc = '[minuet.virtualtext] accept suggestion (n lines)',
+            silent = true,
+        })
+    end
+
+    if keymap.accept_word then
+        vim.keymap.set('i', keymap.accept_word, action.accept_word, {
+            desc = '[minuet.virtualtext] accept suggestion (word)',
             silent = true,
         })
     end
