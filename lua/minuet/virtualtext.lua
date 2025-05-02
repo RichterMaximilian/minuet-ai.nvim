@@ -319,9 +319,19 @@ function action.accept_word()
         return
     end
 
-    local suggestions = vim.split(suggestion, ' ')
+    local _, char_idx = string.find(suggestion, '%s*%p*[^%s%p]*%s')
 
-    local word = suggestions[1]
+    local word = nil
+    if char_idx and char_idx > 1 then
+        word = string.sub(suggestion, 1, char_idx - 1)
+    else
+        return
+    end
+
+    -- local quoted_suggestion = '"' .. suggestion .. '"'
+    -- vim.notify(quoted_suggestion, 'error')
+    -- local quoted_word = "'" .. word .. "'"
+    -- vim.notify(quoted_word, 'error')
 
     reset_ctx(ctx)
 
